@@ -236,36 +236,23 @@
     }
 
     function updateOrca(t) {
-      const w = window.innerWidth, h = window.innerHeight
-
-      // 자연스러운 수영 패턴 (사인파 + 약간의 회전)
-      const swimT = t * 0.0008
-      let targetVx = Math.cos(swimT) * 2.5
-      let targetVy = Math.sin(swimT * 1.7) * 1.5
-
-      // 마우스에 약간 끌림
       if (mouseX > 0) {
-        const dx = mouseX - orcaX, dy = mouseY - orcaY
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        if (dist > 50) {
-          targetVx += (dx / dist) * 0.8
-          targetVy += (dy / dist) * 0.8
-        }
+        // 마우스를 부드럽게 따라감
+        const ease = 0.08
+        const prevX = orcaX, prevY = orcaY
+        orcaX += (mouseX - orcaX) * ease
+        orcaY += (mouseY - orcaY) * ease
+        orcaVx = orcaX - prevX
+        orcaVy = orcaY - prevY
+      } else {
+        // 마우스 없으면 자동 수영
+        const swimT = t * 0.0008
+        const w = window.innerWidth, h = window.innerHeight
+        orcaX = w * 0.5 + Math.cos(swimT) * w * 0.3
+        orcaY = h * 0.5 + Math.sin(swimT * 1.7) * h * 0.25
+        orcaVx = Math.cos(swimT) * 2
+        orcaVy = Math.sin(swimT * 1.7) * 1.5
       }
-
-      // 벽에서 밀림
-      const wallMargin = 120
-      if (orcaX < wallMargin) targetVx += 2
-      if (orcaX > w - wallMargin) targetVx -= 2
-      if (orcaY < wallMargin) targetVy += 2
-      if (orcaY > h - wallMargin - 50) targetVy -= 2
-
-      // 부드러운 보간
-      orcaVx += (targetVx - orcaVx) * 0.02
-      orcaVy += (targetVy - orcaVy) * 0.02
-
-      orcaX += orcaVx
-      orcaY += orcaVy
 
       // 방향
       orcaAngle = Math.atan2(orcaVy, orcaVx)
