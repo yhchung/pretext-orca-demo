@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>범고래의 바다 — Pretext Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    html, body {
+      background: radial-gradient(ellipse at 50% 30%, #0a1628 0%, #050a12 100%);
+      color: #c8d8e8; height: 100vh; overflow: hidden;
+    }
+    body { font-family: "Noto Serif KR", "Batang", Georgia, serif; }
+    #stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; user-select: none; }
+
+    .line {
+      position: absolute; white-space: pre; pointer-events: none; z-index: 1;
+      color: #b0c8e0; transition: none;
+    }
+
+    .headline-line {
+      position: absolute; white-space: pre; pointer-events: none;
+      font-weight: 700; color: #fff; letter-spacing: -0.5px; z-index: 2;
+    }
+
+    /* 범고래 */
+    .orca {
+      position: absolute; pointer-events: none; z-index: 10;
+      will-change: transform; filter: drop-shadow(0 0 30px rgba(100,180,255,0.3));
+      width: 120px; height: 70px;
+    }
+    .orca svg { width: 100%; height: 100%; }
+
+    /* 물결 파티클 */
+    .bubble {
+      position: absolute; border-radius: 50%; pointer-events: none; z-index: 9;
+      background: radial-gradient(circle, rgba(120,200,255,0.4) 0%, transparent 70%);
+      will-change: transform, opacity;
+    }
+
+    .stats-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(5,10,18,0.9); backdrop-filter: blur(12px);
+      padding: 10px 24px; display: flex; gap: 32px; align-items: center;
+      font: 400 12px/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: rgba(255,255,255,0.35); z-index: 100;
+      border-top: 1px solid rgba(100,180,255,0.1);
+    }
+    .stat { display: flex; gap: 6px; align-items: center; }
+    .stat-value { color: rgba(150,200,255,0.7); font-weight: 600; }
+    .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .hint {
+      position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+      font: 400 13px/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: rgba(255,255,255,0.25); z-index: 100;
+      background: rgba(0,0,0,0.5); padding: 8px 18px; border-radius: 999px;
+      pointer-events: none;
+    }
+
+    .title-overlay {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font: 700 48px/1.2 "Noto Serif KR", Georgia, serif;
+      color: rgba(255,255,255,0.04); z-index: 0; pointer-events: none;
+      text-align: center; white-space: nowrap; letter-spacing: 8px;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="stage"></div>
+  <div class="title-overlay">범고래의 바다</div>
+  <div class="hint">범고래가 헤엄칩니다 · 마우스를 움직여 방향을 바꿔보세요 · 텍스트가 실시간으로 피해갑니다</div>
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-label">Lines</span><span class="stat-value" id="sLines">0</span></div>
+    <div class="stat"><span class="stat-label">Reflow</span><span class="stat-value" id="sReflow">0ms</span></div>
+    <div class="stat"><span class="stat-label">FPS</span><span class="stat-value" id="sFps">60</span></div>
+  </div>
+
+  <script type="module">
+    import { prepareWithSegments, layoutNextLine } from 'https://somnai-dreams.github.io/pretext-demos/pretext.js'
+
+    // ── 텍스트 ──
+    const headlineText = '범고래의 바다'
+
+    const bodyText = `깊고 푸른 바다 한가운데, 범고래 한 마리가 유유히 헤엄치고 있다. 그 거대한 몸은 파도를 가르며 물살을 만들어내고, 주변의 모든 것들이 그 움직임에 반응한다. 바다는 고요하지만 살아 숨 쉬고 있으며, 범고래의 등지느러미가 수면 위로 솟아오를 때마다 빛이 반사되어 은빛 물보라가 흩날린다. 범고래는 지구상에서 가장 지능이 높은 해양 포유류 중 하나다. 그들은 가족 단위로 무리를 이루어 살아가며, 각 무리는 고유한 소리와 사냥 방식을 가지고 있다. 이것은 마치 하나의 문화와도 같다. 어미 범고래는 자신의 지식과 경험을 새끼에게 전수하고, 이 전통은 세대를 넘어 이어져 내려온다. 태평양의 차가운 물속에서 그들은 연어를 쫓아 수백 킬로미터를 이동한다. 때로는 수면 위로 뛰어올라 장엄한 점프를 선보이기도 하는데, 그 순간 시간이 멈춘 듯 온 세상이 고요해진다. 중력을 거스르는 듯한 그 비상은 자유 그 자체의 표현이다. 바다의 어둠 속에서 범고래의 흑백 무늬는 놀라운 위장 효과를 발휘한다. 위에서 내려다보면 어두운 등이 심해와 섞이고, 아래에서 올려다보면 밝은 배가 수면의 빛과 어우러진다. 자연이 만들어낸 가장 아름다운 디자인 중 하나라 할 수 있다. 이 광활한 바다에서 범고래는 단순한 포식자가 아니다. 그들은 생태계의 균형을 유지하는 핵심 종이며, 바다의 건강을 나타내는 지표이기도 하다. 범고래가 자유롭게 헤엄칠 수 있는 바다는 곧 건강한 바다다. 우리가 이 장엄한 생명체를 보호해야 하는 이유가 바로 여기에 있다. 범고래의 사회 구조는 모계 중심이다. 할머니 범고래가 무리의 리더 역할을 하며, 먹이가 있는 곳으로 가족을 이끈다. 놀랍게도 할머니 범고래는 폐경기를 겪는 몇 안 되는 동물 중 하나인데, 이는 직접 번식하는 대신 손주 세대의 생존을 돕는 데 집중하기 위한 진화적 선택이라고 과학자들은 설명한다. 범고래는 음파를 이용한 반향정위로 사냥하고 소통한다. 각 무리는 고유한 방언을 가지고 있어서, 연구자들은 소리만 듣고도 어떤 무리인지 구별할 수 있다. 이 복잡한 의사소통 체계는 인간의 언어만큼이나 정교하다. 북극에서 남극까지, 범고래는 지구의 모든 바다에서 발견된다. 그들은 환경에 적응하는 놀라운 능력을 보여주며, 각 지역의 범고래는 서로 다른 먹이와 사냥 전략을 발전시켜 왔다. 어떤 무리는 물개를, 어떤 무리는 상어를, 또 어떤 무리는 대왕고래까지 사냥한다. 범고래의 지능은 거울 자기인식 테스트를 통과할 정도로 높다. 그들은 놀이를 즐기고, 슬픔을 표현하며, 동료가 죽으면 며칠간 시신 곁을 떠나지 않는 모습도 관찰된다. 이러한 감정적 깊이는 우리가 이 생명체를 어떻게 대해야 하는지를 다시 생각하게 만든다.`
+
+    // ── 설정 ──
+    const BODY_FONT_SIZE = 17
+    const BODY_LINE_HEIGHT = 30
+    const HEADLINE_FONT_SIZE = 36
+    const HEADLINE_LINE_HEIGHT = 48
+    const MARGIN = 30
+    const ORCA_RADIUS = 90
+    const ORCA_H_PAD = 30
+    const ORCA_V_PAD = 15
+
+    const stage = document.getElementById('stage')
+    const sLines = document.getElementById('sLines')
+    const sReflow = document.getElementById('sReflow')
+    const sFps = document.getElementById('sFps')
+
+    // ── 범고래 상태 ──
+    let orcaX, orcaY, orcaVx, orcaVy, orcaAngle = 0
+    let mouseX = -1, mouseY = -1
+    let orcaEl
+
+    // ── 물방울 파티클 ──
+    const bubbles = []
+    const MAX_BUBBLES = 20
+
+    // ── DOM 풀 ──
+    const linePool = []
+    let linePoolIdx = 0
+
+    function acquireLine(cls) {
+      if (linePoolIdx < linePool.length) {
+        const el = linePool[linePoolIdx++]
+        el.style.display = ''
+        return el
+      }
+      const el = document.createElement('div')
+      el.className = cls
+      stage.appendChild(el)
+      linePool.push(el)
+      linePoolIdx++
+      return el
+    }
+
+    function hideUnused() {
+      for (let i = linePoolIdx; i < linePool.length; i++) {
+        linePool[i].style.display = 'none'
+      }
+    }
+
+    // ── 원-밴드 교차 ──
+    function circleIntervalForBand(cx, cy, r, bandTop, bandBot, hPad, vPad) {
+      const effectiveR = r + vPad
+      const closestY = Math.max(bandTop, Math.min(cy, bandBot))
+      const dy = closestY - cy
+      if (Math.abs(dy) >= effectiveR) return null
+      const dx = Math.sqrt(effectiveR * effectiveR - dy * dy) + hPad
+      return { left: cx - dx, right: cx + dx }
+    }
+
+    // ── 슬롯 카빙 ──
+    function carveSlots(region, blocked) {
+      let slots = [region]
+      for (const b of blocked) {
+        const next = []
+        for (const s of slots) {
+          if (b.right <= s.left || b.left >= s.right) { next.push(s); continue }
+          if (b.left > s.left) next.push({ left: s.left, right: b.left })
+          if (b.right < s.right) next.push({ left: b.right, right: s.right })
+        }
+        slots = next
+      }
+      return slots.filter(s => (s.right - s.left) > 40)
+    }
+
+    // ── 레이아웃 ──
+    let headlinePrepared, bodyPrepared
+    let ready = false
+
+    async function init() {
+      await document.fonts.ready
+
+      const bodyFont = `${BODY_FONT_SIZE}px "Noto Serif KR", Georgia, serif`
+      const headlineFont = `700 ${HEADLINE_FONT_SIZE}px "Noto Serif KR", Georgia, serif`
+
+      headlinePrepared = prepareWithSegments(headlineText, headlineFont)
+      bodyPrepared = prepareWithSegments(bodyText, bodyFont)
+
+      // 범고래 초기 위치
+      const w = window.innerWidth, h = window.innerHeight
+      orcaX = w * 0.5
+      orcaY = h * 0.4
+      orcaVx = 1.5
+      orcaVy = 0.8
+
+      // 범고래 엘리먼트
+      orcaEl = document.createElement('div')
+      orcaEl.className = 'orca'
+      orcaEl.innerHTML = `<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+        <!-- 몸통 -->
+        <ellipse cx="100" cy="55" rx="80" ry="35" fill="#1a1a2e"/>
+        <!-- 배 (흰색) -->
+        <ellipse cx="105" cy="65" rx="55" ry="18" fill="#e8e8f0"/>
+        <!-- 눈 뒤 흰 패치 -->
+        <ellipse cx="58" cy="46" rx="10" ry="6" fill="#e8e8f0" transform="rotate(-10 58 46)"/>
+        <!-- 눈 -->
+        <circle cx="55" cy="42" r="3" fill="#1a1a2e"/>
+        <!-- 등지느러미 -->
+        <path d="M110 20 Q108 8 100 0 Q105 15 95 20 Z" fill="#1a1a2e"/>
+        <!-- 꼬리 -->
+        <path d="M175 45 Q200 25 195 15 Q185 35 178 40 Z" fill="#1a1a2e"/>
+        <path d="M175 65 Q200 85 195 95 Q185 75 178 70 Z" fill="#1a1a2e"/>
+        <!-- 가슴지느러미 -->
+        <path d="M80 70 Q70 90 60 95 Q72 85 78 72 Z" fill="#1a1a2e"/>
+      </svg>`
+      stage.appendChild(orcaEl)
+
+      document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY })
+      document.addEventListener('touchmove', e => {
+        mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY
+      }, { passive: true })
+
+      ready = true
+      requestAnimationFrame(loop)
+    }
+
+    function spawnBubble() {
+      if (bubbles.length >= MAX_BUBBLES) return
+      const el = document.createElement('div')
+      el.className = 'bubble'
+      const size = 4 + Math.random() * 12
+      el.style.width = el.style.height = size + 'px'
+      stage.appendChild(el)
+      bubbles.push({
+        el, x: orcaX - orcaVx * 20 + (Math.random() - 0.5) * 40,
+        y: orcaY + (Math.random() - 0.5) * 30,
+        vx: -orcaVx * 0.3 + (Math.random() - 0.5) * 0.5,
+        vy: -0.5 - Math.random() * 1,
+        life: 1, decay: 0.008 + Math.random() * 0.012
+      })
+    }
+
+    function updateBubbles() {
+      for (let i = bubbles.length - 1; i >= 0; i--) {
+        const b = bubbles[i]
+        b.x += b.vx; b.y += b.vy; b.life -= b.decay
+        if (b.life <= 0) { b.el.remove(); bubbles.splice(i, 1); continue }
+        b.el.style.transform = `translate(${b.x}px, ${b.y}px)`
+        b.el.style.opacity = b.life * 0.6
+      }
+    }
+
+    function updateOrca(t) {
+      const w = window.innerWidth, h = window.innerHeight
+
+      // 자연스러운 수영 패턴 (사인파 + 약간의 회전)
+      const swimT = t * 0.0008
+      let targetVx = Math.cos(swimT) * 2.5
+      let targetVy = Math.sin(swimT * 1.7) * 1.5
+
+      // 마우스에 약간 끌림
+      if (mouseX > 0) {
+        const dx = mouseX - orcaX, dy = mouseY - orcaY
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        if (dist > 50) {
+          targetVx += (dx / dist) * 0.8
+          targetVy += (dy / dist) * 0.8
+        }
+      }
+
+      // 벽에서 밀림
+      const wallMargin = 120
+      if (orcaX < wallMargin) targetVx += 2
+      if (orcaX > w - wallMargin) targetVx -= 2
+      if (orcaY < wallMargin) targetVy += 2
+      if (orcaY > h - wallMargin - 50) targetVy -= 2
+
+      // 부드러운 보간
+      orcaVx += (targetVx - orcaVx) * 0.02
+      orcaVy += (targetVy - orcaVy) * 0.02
+
+      orcaX += orcaVx
+      orcaY += orcaVy
+
+      // 방향
+      orcaAngle = Math.atan2(orcaVy, orcaVx)
+      const scaleX = orcaVx < 0 ? -1 : 1
+
+      orcaEl.style.transform = `translate(${orcaX - 60}px, ${orcaY - 35}px) scaleX(${scaleX}) rotate(${orcaAngle * 0.3}rad)`
+
+      // 물방울
+      if (Math.random() < 0.3) spawnBubble()
+    }
+
+    // ── 렌더 ──
+    let lastFpsTime = 0, frameCount = 0, displayFps = 60
+
+    function loop(t) {
+      if (!ready) return
+      requestAnimationFrame(loop)
+
+      // FPS
+      frameCount++
+      if (t - lastFpsTime > 500) {
+        displayFps = Math.round(frameCount / ((t - lastFpsTime) / 1000))
+        frameCount = 0; lastFpsTime = t
+      }
+
+      updateOrca(t)
+      updateBubbles()
+
+      const perfStart = performance.now()
+      linePoolIdx = 0
+
+      const W = window.innerWidth
+      const H = window.innerHeight
+      const contentW = W - MARGIN * 2
+      const contentH = H - MARGIN - 60 // 하단 stats bar 공간
+
+      // 장애물 (범고래)
+      const obs = [{ cx: orcaX, cy: orcaY, r: ORCA_RADIUS, hPad: ORCA_H_PAD, vPad: ORCA_V_PAD }]
+
+      // ── 본문 (전체 화면) ──
+      let y = MARGIN
+      let totalLines = 0
+      let bodyCursor = { segmentIndex: 0, graphemeIndex: 0 }
+
+      while (y + BODY_LINE_HEIGHT <= MARGIN + contentH) {
+        const blocked = []
+        for (const c of obs) {
+          const iv = circleIntervalForBand(c.cx, c.cy, c.r, y, y + BODY_LINE_HEIGHT, c.hPad, c.vPad)
+          if (iv) blocked.push(iv)
+        }
+        const slots = carveSlots({ left: MARGIN, right: W - MARGIN }, blocked)
+        if (slots.length === 0) { y += BODY_LINE_HEIGHT; continue }
+
+        let exhausted = false
+        for (const slot of slots) {
+          const line = layoutNextLine(bodyPrepared, bodyCursor, slot.right - slot.left)
+          if (!line) { exhausted = true; break }
+
+          // SDF 거리 기반 3D 효과
+          const lineCenterY = y + BODY_LINE_HEIGHT / 2
+          const lineCenterX = (slot.left + slot.right) / 2
+          const dx = lineCenterX - orcaX, dy = lineCenterY - orcaY
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          const maxDist = ORCA_RADIUS + ORCA_H_PAD + 80
+          const proximity = Math.max(0, 1 - dist / maxDist)
+
+          const el = acquireLine('line')
+          el.style.font = `${BODY_FONT_SIZE}px "Noto Serif KR", Georgia, serif`
+          el.style.left = slot.left + 'px'
+          el.style.top = y + 'px'
+          el.textContent = line.text
+
+          // 가까울수록: 밝아지고, 살짝 위로 떠오르고, 크기 커짐
+          const lift = proximity * 6
+          const scale = 1 + proximity * 0.08
+          const glow = proximity * 0.6
+          const blue = Math.round(180 + proximity * 75)
+          el.style.transform = `translateY(${-lift}px) scale(${scale})`
+          el.style.color = `rgba(${160 + glow * 60}, ${200 + glow * 40}, ${blue}, ${0.7 + proximity * 0.3})`
+          el.style.textShadow = proximity > 0.1
+            ? `0 0 ${proximity * 20}px rgba(100,180,255,${proximity * 0.5}), 0 ${proximity * 3}px ${proximity * 8}px rgba(0,0,0,0.4)`
+            : 'none'
+
+          bodyCursor = line.end
+          totalLines++
+        }
+        if (exhausted) break
+        y += BODY_LINE_HEIGHT
+      }
+
+      hideUnused()
+
+      const perfEnd = performance.now()
+      sLines.textContent = totalLines
+      sReflow.textContent = (perfEnd - perfStart).toFixed(1) + 'ms'
+      sFps.textContent = displayFps
+    }
+
+    init()
+  </script>
+</body>
+</html>
